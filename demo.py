@@ -26,7 +26,7 @@ upload_data["headers"] = {"Authorization": token}
 # 元组的结构为 (文件名, 文件对象, 文件类型)
 # 例如: ("file", ("1.jpg", open("./file/1.jpg", "rb"), "jpg"))
 
-upload_data["files"] = {"file": ("IMG_2867.jpg", open("./file/IMG_2867.jpg", "rb"), "jpg")}
+upload_data["files"] = {"file": ("1.jpg", open("./file/1.jpg", "rb"), "jpg")}
 
 res2 = requests.request(**upload_data)
 print(":)res2json: ", res2.json())
