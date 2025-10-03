@@ -1,7 +1,8 @@
+import allure
 import pymysql
 import requests
 
-
+@allure.step("2.发送HTTP请求")
 def send_http_request(**request_data):
     res = requests.request(**request_data)  # **字典 的意思是 参数解包，会把字典里的 key/value 当作函数的参数传进去。
     print("🔹核心步骤2json:", res.json())

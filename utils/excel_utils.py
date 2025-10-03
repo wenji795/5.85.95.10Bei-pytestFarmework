@@ -26,7 +26,7 @@ def read_excel():
 
 
     # 打印拿到的所有数据
-    print(data)
+    # print(data)
 
     # 关闭 excel 文件
     workbook.close()

@@ -6,6 +6,8 @@ from jinja2 import Template
 
 from utils.allure_utils import allure_init
 from utils.analyse_case import analyse_case
+from utils.asserts import http_assert, jdbc_assert
+from utils.extrator import json_extrator, jdbc_extrator
 from utils.send_request import send_http_request, send_jdbc_request
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -53,37 +55,18 @@ class TestRunner:
 
             #核心步骤3: 处理断言
             #http响应断言
-            # assert res.json()["meta"]["msg"] == case["expected"]#res.json() 会把返回的 JSON 字符串解析成 Python 字典。实际结果==预期结果
-            if case ["check"]:
-                # assert 实际结果 == 预期结果
-                assert jsonpath.jsonpath(res.json(),case["check"])[0] == case["expected"]
-                #case["check"] → 从字典里取出 JSONPath 表达式（例如 "$..msg"）case["expected"] → 从字典里取出预期结果（例如 "登录成功"）[0] → 因为 jsonpath() 返回列表，要取第一个元素
-            else:
-                # assert 预期结果 in 实际结果
-                assert case["expected"] in res.text
-                # assert case["expected"] in 实际结果
+            http_assert(case, res)
 
             #数据库断言
             # print(case ["sql_check"])
             # print(case ["sql_expected"])
-            if case ["sql_check"] and case["sql_expected"]:
-                assert send_jdbc_request(case["sql_check"], index=0) == case["sql_expected"]
+            jdbc_assert(case)
 
             #核心步骤4: 提取
             #JSON 提取
-            if case["jsonExData"]:
-                #首先把jsonExData的key和value拆开
-                for key, value in eval(case["jsonExData"]).items():#这里case["jsonExData"]从excel拿出来是string，eval()转成字典
-                   value = jsonpath.jsonpath(res.json(),value)[0] #value重新赋值！
-                   # print(value)
-                   #现在全局属性all在测试函数外面
-                   all[key] = value
-                   # print(all)
+            json_extrator(case, all, res)
+
 
             #SQL提取
-            if case["sqlExData"]:
-                for key, value in eval(case["sqlExData"]).items():
-                    value = send_jdbc_request(value, index=0)
-                    all[key] = value
-                    print("🔹all结果:", all)
+            jdbc_extrator(case, all)
 
