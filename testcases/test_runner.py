@@ -83,23 +83,7 @@ class TestRunner:
             #SQL提取
             if case["sqlExData"]:
                 for key, value in eval(case["sqlExData"]).items():
-                    print("🔹SQL 结果:", key)
-                    print("🔹提取的数据value:", value)
-                    conn = pymysql.Connect(  # pymysql.Connect() 是 PyMySQL 的连接方法，用来连接 MySQL 数据库
-                        host="8.138.193.96",
-                        port=3306,
-                        database="mydb",
-                        user="root",
-                        password="beimeng2025",
-                        charset="utf8mb4"
-                    )
-                    cur = conn.cursor()
-                    cur.execute(value)
-                    result = cur.fetchone()
-                    cur.close()
-                    conn.close()
-                    value = result[0]
-                    print("🔹value2结果:", value)
+                    value = send_jdbc_request(value, index=0)
                     all[key] = value
                     print("🔹all结果:", all)
 

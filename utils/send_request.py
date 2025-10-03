@@ -9,7 +9,7 @@ def send_http_request(**request_data):
 
 def send_jdbc_request(sql, index=0):
     # 创建连接桥conn+游标驴cur，装货执行sql，卸货杀驴，拆桥
-    conn = pymysql.Connect(  # pymysql.Connect() 是 PyMySQL 的连接方法，用来连接 MySQL 数据库
+    conn = pymysql.connect(  # pymysql.Connect() 是 PyMySQL 的连接方法，用来连接 MySQL 数据库
         host="8.138.193.96",
         port=3306,
         database="mydb",
