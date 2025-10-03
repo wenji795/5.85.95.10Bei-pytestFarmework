@@ -1,6 +1,13 @@
 import sys
 import os
+
+import allure
 from jinja2 import Template
+
+from utils.allure_utils import allure_init
+from utils.analyse_case import analyse_case
+from utils.send_request import send_http_request, send_jdbc_request
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import jsonpath
 import pymysql
@@ -35,36 +42,18 @@ class TestRunner:
             # 渲染后：再用eval()转成字典
             # 外层花括号是字典，占位符要双大括；值是字符串要引号，渲染之后再反序列。
 
+            #allure报告初始化
+            allure_init(case)
 
-
-        # TODO:
             #核心步骤1: 解析请求数据
-            method = case["method"]#case 是字典，字典要取某个键的值，必须用 方括号 []  意思是从字典里取指定键对应的值。
-            url = "http://8.138.193.96:8888/api/private/v1" + case["path"]
-            headers = eval(case["headers"]) if isinstance(case["headers"], str) else None
-            params = eval(case["params"]) if isinstance(case["params"], str) else None
-            data = eval(case["data"]) if isinstance(case["data"], str) else None
-            json = eval(case["json"]) if isinstance(case["json"], str) else None
-            files = eval(case["files"]) if isinstance(case["files"], str) else None
-
-            request_data = {
-                "method": method,
-                "url": url,
-                "headers": headers,
-                "params": params,
-                "data": data,
-                "json": json,
-                "files": files,
-            }
+            request_data = analyse_case(case)
 
             #核心步骤2: 发起请求，得到响应结果
-            res = requests.request(**request_data)  # **字典 的意思是 参数解包，会把字典里的 key/value 当作函数的参数传进去。
-            print("🔹核心步骤2json:",res.json())
+            res = send_http_request(**request_data)
 
             #核心步骤3: 处理断言
             #http响应断言
             # assert res.json()["meta"]["msg"] == case["expected"]#res.json() 会把返回的 JSON 字符串解析成 Python 字典。实际结果==预期结果
-            print(res.json())
             if case ["check"]:
                 # assert 实际结果 == 预期结果
                 assert jsonpath.jsonpath(res.json(),case["check"])[0] == case["expected"]
@@ -78,23 +67,7 @@ class TestRunner:
             # print(case ["sql_check"])
             # print(case ["sql_expected"])
             if case ["sql_check"] and case["sql_expected"]:
-                #创建连接桥conn+游标驴cur，装货执行sql，卸货杀驴，拆桥
-                conn = pymysql.Connect(  #pymysql.Connect() 是 PyMySQL 的连接方法，用来连接 MySQL 数据库
-                    host="8.138.193.96",
-                    port=3306,
-                    database="mydb",
-                    user="root",
-                    password="beimeng2025",
-                    charset="utf8mb4"
-                )
-                cur = conn.cursor()
-                #执行语句
-                cur.execute(case ["sql_check"])
-                result = cur.fetchone()#从结果集中取一条数据（元组格式）
-
-                cur.close()
-                conn.close()
-                assert result[0] == case["sql_expected"]
+                assert send_jdbc_request(case["sql_check"], index=0) == case["sql_expected"]
 
             #核心步骤4: 提取
             #JSON 提取
